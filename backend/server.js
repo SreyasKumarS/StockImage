@@ -15,6 +15,7 @@ const corsOptions = {
   origin: [process.env.FRONTEND_URL], 
   credentials: true, 
 };
+console.log('Allowed Origin:', process.env.FRONTEND_URL);
 
 
 
