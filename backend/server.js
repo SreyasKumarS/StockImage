@@ -17,12 +17,16 @@ dotenv.config();
 const app = express();
 
 
-const corsOptions = {
-  origin: [process.env.FRONTEND_URL], 
-  credentials: true, 
-};
-console.log('Allowed Origin:', process.env.FRONTEND_URL);
+// const corsOptions = {
+//   origin: [process.env.FRONTEND_URL], 
+//   credentials: true, 
+// };
+// console.log('Allowed Origin:', process.env.FRONTEND_URL);
 
+const corsOptions = {
+  origin: ['https://stock-image-nine.vercel.app'], // Replace this with your actual frontend URL
+  credentials: true, // Allow cookies to be sent from frontend
+};
 
 
 app.use(cors(corsOptions)); 
