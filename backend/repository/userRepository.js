@@ -25,7 +25,7 @@ export class UserRepository {
       }
   }
 
- async update(user) {
+ static async update(user) {
       try {
           return await User.findByIdAndUpdate(user._id, user, { new: true });
       } catch (error) {
@@ -98,7 +98,7 @@ static async updateRotation (id, angle){
 
 
 
-  
+
   static async zipFolder(sourceFolder, outputFile) {
     console.log('Reached zipFolder in repository');
     return new Promise((resolve, reject) => {
