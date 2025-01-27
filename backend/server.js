@@ -15,10 +15,10 @@ const corsOptions = {
   origin: [process.env.FRONTEND_URL], 
   credentials: true, 
 };
+
+
+
 app.use(cors(corsOptions)); 
-
-
-
 app.use(bodyParser.json()); 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -31,9 +31,7 @@ import userRoutes from './routes/userRoutes.js';
 app.use('/users', userRoutes);
 app.post('/refresh-token',refreshAccessToken );
 
-app.get('/status', (req, res) => {
-  res.json({ message: 'Backend is running!' });
-});
+
 
 
 connectDB();
