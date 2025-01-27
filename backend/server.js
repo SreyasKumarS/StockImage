@@ -31,6 +31,10 @@ import userRoutes from './routes/userRoutes.js';
 app.use('/users', userRoutes);
 app.post('/refresh-token',refreshAccessToken );
 
+app.get('/status', (req, res) => {
+  res.json({ message: 'Backend is running!' });
+});
+
 
 connectDB();
 
