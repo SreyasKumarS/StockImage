@@ -1,4 +1,10 @@
 import dotenv from 'dotenv';
+const result = dotenv.config();
+if (result.error) {
+  console.error('Failed to load .env file:', result.error);
+} else {
+  console.log('Environment variables loaded successfully.');
+}
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
