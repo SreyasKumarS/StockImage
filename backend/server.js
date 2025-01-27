@@ -27,9 +27,11 @@ const corsOptions = {
   origin: ['https://stock-image-nine.vercel.app'], // Replace this with your actual frontend URL
   credentials: true, // Allow cookies to be sent from frontend
 };
+console.log(corsOptions.origin, 'origin');
 
 
-app.use(cors(corsOptions)); 
+app.options('*', cors(corsOptions)); // Enable preflight for all routes
+// app.use(cors(corsOptions)); 
 app.use(bodyParser.json()); 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
