@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Row, Col } from 'react-bootstrap'; // Ensure react-bootstrap is installed
+import { Container, Row, Col } from 'react-bootstrap'; 
 
 const FormContainer = ({ children }) => {
   return (

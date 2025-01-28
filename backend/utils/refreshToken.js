@@ -7,7 +7,6 @@ const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN;
 
 export const refreshAccessToken = (req, res) => {
-  console.log('Entered refresh token function for refreshing access token');
 
 
   console.log('Cookies:', req.cookies);  

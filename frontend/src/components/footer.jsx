@@ -34,8 +34,8 @@ const Footer = () => {
                                 fontSize: '24px',
                                 transition: 'color 0.3s ease',
                             }}
-                            onMouseEnter={(e) => e.target.style.color = '#1F4E78'} // Hover effect
-                            onMouseLeave={(e) => e.target.style.color = 'white'} // Hover effect
+                            onMouseEnter={(e) => e.target.style.color = '#1F4E78'} 
+                            onMouseLeave={(e) => e.target.style.color = 'white'} 
                         >
                             <FaFacebook />
                         </a>

@@ -19,7 +19,7 @@ export class UserService {
 
           const hashedPassword = await bcrypt.hash(password, 10);
           const otp = Math.floor(100000 + Math.random() * 900000).toString();
-          const otpExpires = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
+          const otpExpires = Date.now() + 10 * 60 * 1000; 
 
           const newUser = {
               name,
@@ -55,8 +55,8 @@ export class UserService {
               throw new Error('Invalid OTP');
           }
 
-          user.otp = null; // Clear OTP after successful verification
-          user.otpExpires = null; // Clear expiry time
+          user.otp = null; 
+          user.otpExpires = null; 
           await UserRepository.update(user);
 
           return 'OTP verified successfully. Registration complete.';
@@ -88,9 +88,6 @@ export class UserService {
           throw new Error(error.message || 'Failed to resend OTP');
       }
   }
-
-
-
 
   static async login(email, password, res) { 
 
@@ -144,7 +141,7 @@ export class UserService {
           }
 
           const otp = Math.floor(100000 + Math.random() * 900000).toString();
-          const otpExpires = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
+          const otpExpires = Date.now() + 10 * 60 * 1000; 
 
           user.otp = otp;
           user.otpExpires = otpExpires;
@@ -231,11 +228,6 @@ static async editImage(imageId, newTitle) {
     return await UserRepository.updateImage(imageId, updatedData);
   }
 
-
-
-
-
-
   
 static async deleteImage(id) {
     
@@ -246,7 +238,6 @@ static async deleteImage(id) {
     const filePath = path.join(process.cwd(), "public", image.url);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
-      console.log("File deleted successfully:", filePath);
     } else {
       console.warn("File not found on server:", filePath);
     }
@@ -283,95 +274,37 @@ static async deleteImage(id) {
   }
   
   
-
-  // static async rotateImage(id, direction) {
-  //   // Fetch image from DB
-  //   const image = await UserRepository.getImageById(id);
-  //   if (!image) throw new Error("Image not found");
-  
-  //   const rotationAngle = direction === "left" ? -90 : 90;
-  
-  //   // Define the original image path
-  //   const originalImagePath = path.join(process.cwd(), "public", image.url);
-  
-  //   // Define a temporary path for the rotated image
-  //   const tempFileName = `temp_${path.basename(image.url)}`; // Strip directories from image.url
-  //   const tempImagePath = path.join(process.cwd(), "public", tempFileName);
-  
-  //   try {
-  //     // Rotate the image and save to a temporary file
-  //     await sharp(originalImagePath)
-  //       .rotate(rotationAngle)
-  //       .toFile(tempImagePath);
-  
-  //     // Replace the original file with the rotated image
-  //     fs.renameSync(tempImagePath, originalImagePath);
-  
-  //     // Update the rotation angle in MongoDB
-  //     const updatedImage = await UserRepository.updateRotation(id, rotationAngle);
-  
-  //     return updatedImage;
-  //   } catch (error) {
-  //     // Clean up the temporary file in case of an error
-  //     if (fs.existsSync(tempImagePath)) {
-  //       fs.unlinkSync(tempImagePath);
-  //     }
-  //     throw new Error("Error rotating image: " + error.message);
-  //   }
-  // };
-
-
   static async rotateImage(id, direction) {
-    // Fetch image from the database
     const image = await UserRepository.getImageById(id);
     if (!image) throw new Error("Image not found");
   
-    // Determine the new rotation angle
     const rotationAngle = direction === "left" ? -90 : 90;
   
     try {
-      // Update the rotation angle in MongoDB only
       const updatedImage = await UserRepository.updateRotation(id, rotationAngle);
   
-      return updatedImage; // Return the updated image with the new rotation value
+      return updatedImage; 
     } catch (error) {
       throw new Error("Error updating image rotation in database: " + error.message);
     }
   }
   
 
-  // static async reorderImages(images) {
-  //   // Update the order of each image in the database
-  //   const updatePromises = images.map((image, index) =>
-  //     UserRepository.updateImageOrder(image._id, index)
-  //   );
-  //   await Promise.all(updatePromises);
-  // }
-
-
-
-
-
   static async reorderImages(images) {
-    // Ensure each image has a valid filename
     const uploadsFolder = path.join(process.cwd(), "public", "uploads");
     
-    // Update the order in the database
     const updatePromises = images.map((image, index) =>
         UserRepository.updateImageOrder(image._id, index)
     );
     await Promise.all(updatePromises);
-
-    // Physically rearrange the images by updating the modified time (mtime)
     for (let i = 0; i < images.length; i++) {
         const image = images[i];
    
         const filePath = path.join(uploadsFolder, image.url);
         
         if (fs.existsSync(filePath)) {
-            // Update the modified time to match the desired order
-            const newTime = new Date().getTime() + i; // Ensures a unique mtime for each file
-            fs.utimesSync(filePath, new Date(newTime), new Date(newTime)); // Update access and modified time
+            const newTime = new Date().getTime() + i; 
+            fs.utimesSync(filePath, new Date(newTime), new Date(newTime)); 
         } else {
             console.error(error);
         }
@@ -379,54 +312,13 @@ static async deleteImage(id) {
 }
 
 
-
-  // static async createZip(imagePaths, outputFile) {
-  //   console.log("Reached createZip in service");
-  //   return new Promise((resolve, reject) => {
-  //     const output = fs.createWriteStream(outputFile);
-  //     const archive = archiver("zip", { zlib: { level: 9 } });
-  
-  //     // Pipe the archive data to the file stream
-  //     archive.pipe(output);
-  
-  //     // Add processed images to the archive in the correct order
-  //     imagePaths.forEach((imagePath) => {
-  //       archive.file(imagePath, { name: path.basename(imagePath) }); // Use the renamed file
-  //     });
-  
-  //     // Finalize the archive
-  //     archive.finalize();
-  
-  //     output.on("close", resolve);
-  //     archive.on("error", reject);
-  //   });
-  // }
-
-
-  
-  // static async cleanupZip(filePath) {
-  //   try {
-  //     UserRepository.deleteFile(filePath);
-  //   } catch (error) {
-  //     console.error('Error cleaning up zip file:', error);
-  //   }
-  // }
-
-
-
-
   static async processImagesAndCreateZip(userId) {
     try {
-      
-
-      // Step 1: Fetch unsaved images from the repository
       const unsavedImages = await UserRepository.getUnsavedImages(userId);
-
       if (unsavedImages.length === 0) {
         throw new Error("No unsaved images found for the user.");
       }
 
-      // Step 2: Process images (apply rotation) and store them in a temporary folder
       const tempFolder = path.join(process.cwd(), "temp");
       if (!fs.existsSync(tempFolder)) fs.mkdirSync(tempFolder);
 
@@ -444,20 +336,13 @@ static async deleteImage(id) {
         }
       }
 
-      // Step 3: Sort processed images by `order`
       processedImages.sort((a, b) => a.order - b.order);
 
-      // Step 4: Create a ZIP file
       const zipFilePath = path.join(process.cwd(), "public", "modified-images.zip");
       const imagePaths = processedImages.map((img) => img.path);
 
       await UserService.createZip(imagePaths, zipFilePath);
-
-      // Step 5: Assign the same `batchId` and mark images as `saved`
       const batchId = await UserRepository.assignBatchIdAndSave(unsavedImages, userId);
-
-      console.log("Batch ID assigned:", batchId);
-
       return zipFilePath;
     } catch (error) {
       console.error("Error in processImagesAndCreateZip:", error);
@@ -482,27 +367,19 @@ static async deleteImage(id) {
   }
 
 
-
-
-
   static async fetchSavedBatches (){
-    console.log("Reached batch images in srvcc");
     return await UserRepository.getSavedBatches();
   };
 
 
   static async deleteBatch(batchId) {
     try {
-      // Delegate to the repository layer
       return await UserRepository.deleteBatch(batchId);
     } catch (error) {
       console.error("Error in BatchService:", error);
       throw error;
     }
   }
-
-
-
 
 
 

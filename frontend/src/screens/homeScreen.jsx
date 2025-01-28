@@ -26,10 +26,8 @@ const HomeScreen = () => {
       const initialImages = data.images.map((image) => ({
         ...image,
         rotate: 0,
-        _id: image._id.toString(), // Ensure `_id` is a string
+        _id: image._id.toString(), 
       }));
-
-      console.log("Fetched images:", initialImages);
       setImages(initialImages);
     } catch (error) {
       console.error("Error fetching images:", error.message);
@@ -39,9 +37,8 @@ const HomeScreen = () => {
 
   const fetchBatches = async () => {
     try {
-      const { data } = await api.get("/users/batches"); // API endpoint for fetching batches
-      console.log("Fetched saved batches:", data);
-      setSavedBatches(data); // Assuming `setSavedBatches` is the state setter for batches
+      const { data } = await api.get("/users/batches"); 
+      setSavedBatches(data); 
     } catch (error) {
       console.error("Error fetching batches:", error.message);
     }
@@ -49,32 +46,24 @@ const HomeScreen = () => {
 
 
   const handleDragEnd = async (result) => {
-    console.log("Drag result:", result); // Debug
-
     if (!result.destination) return;
 
     const reorderedImages = Array.from(images);
     const [movedImage] = reorderedImages.splice(result.source.index, 1);
     reorderedImages.splice(result.destination.index, 0, movedImage);
-
-    console.log("Reordered images:", reorderedImages); // Debug
-
-    // Ensure each image has the necessary properties like filename before sending it to the backend
     reorderedImages.forEach(image => {
         if (!image.filename) {
             console.error(`Filename missing for image with ID: ${image._id}`);
         }
     });
 
-    // Update local state
     setImages(reorderedImages);
 
-    // Make API call to update order in the backend
+
     try {
         const response = await api.put("/users/reorder", { images: reorderedImages });
-        console.log("Response from backend:", response.data); // Debug
     } catch (error) {
-        console.error("Error saving image order:", error.message); // Debug
+        console.error("Error saving image order:", error.message); 
     }
 };
 
@@ -178,17 +167,15 @@ const HomeScreen = () => {
 
   const handleDeleteBatch = async (batchId) => {
     try {
-      const response = await api.delete(`/users/deletebatches/${batchId}`); // Correct API call
+      const response = await api.delete(`/users/deletebatches/${batchId}`); 
   
       if (response.status === 200) {
         toast.success('Batch deleted successfully!');
-        
-        // Update the UI to remove the deleted batch
         setSavedBatches((prevBatches) =>
           prevBatches.filter((batch) => batch._id !== batchId)
         );
       } else {
-        const { error } = response.data; // Handle error response
+        const { error } = response.data; 
         toast.error('Batch deleted successfully!');
       }
     } catch (error) {
@@ -462,8 +449,8 @@ const HomeScreen = () => {
           <div
             className="d-flex"
             style={{
-              overflowX: "auto", // Enable horizontal scrolling for multiple images
-              gap: "12px", // Space between images
+              overflowX: "auto", 
+              gap: "12px", 
             }}
           >
             {batch.images.map((image) => (
@@ -471,10 +458,10 @@ const HomeScreen = () => {
                 key={image._id}
                 className="card shadow-sm"
                 style={{
-                  width: "200px", // Set consistent width for all image cards
+                  width: "200px", 
                   borderRadius: "8px",
-                  flexShrink: 0, // Prevent shrinking when scrolling
-                  overflow: "hidden", // Prevent image overflow
+                  flexShrink: 0, 
+                  overflow: "hidden", 
                 }}
               >
                 {/* Image Section */}
@@ -482,7 +469,7 @@ const HomeScreen = () => {
                   style={{
                     position: "relative",
                     width: "100%",
-                    height: "150px", // Fixed height for image container
+                    height: "150px", 
                   }}
                 >
                   <img
@@ -496,7 +483,7 @@ const HomeScreen = () => {
                       transformOrigin: "center",
                       maxWidth: "100%",
                       maxHeight: "100%",
-                      objectFit: "contain", // Prevent cropping
+                      objectFit: "contain", 
                     }}
                   />
                 </div>
@@ -506,7 +493,7 @@ const HomeScreen = () => {
                   style={{
                     padding: "6px",
                     textAlign: "center",
-                    minHeight: "40px", // Ensure consistent height for titles
+                    minHeight: "40px", 
                   }}
                 >
                   <p className="fw-semibold mb-0" style={{ fontSize: "13px" }}>
@@ -532,9 +519,9 @@ const HomeScreen = () => {
                 fontSize: "13px",
                 borderRadius: "4px",
                 flex: "1",
-                background: "#735DA5", // Added background color
-                color: "#fff", // Ensure the text remains readable
-                border: "none", // Optional: Remove the default border for a cleaner look
+                background: "#735DA5", 
+                color: "#fff", 
+                border: "none", 
               }}
             >
               Delete Batch

@@ -15,7 +15,6 @@ export const authenticate = (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1]; // Extract the token from "Bearer <token>"
-    console.log('enetred acess token verification middleware');
     // Verify the token
     jwt.verify(token, ACCESS_TOKEN_SECRET, (err, user) => {
         if (err) {

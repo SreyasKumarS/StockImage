@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux'; // Import useSelector to access state
+import { useDispatch, useSelector } from 'react-redux'; 
 import { clearCredentials } from '../slices/userAuthSlice';
 import { useNavigate, Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -10,7 +10,6 @@ const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Get user from the state to check if logged in
   const user = useSelector((state) => state.auth.user);
 
   const handleLogout = async () => {

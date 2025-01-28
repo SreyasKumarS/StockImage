@@ -2,7 +2,7 @@ import path from 'path';
 import multer from 'multer';
 
 
-// Storage configuration for multer
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "public/uploads/");
@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
   },
 });
 
-// File filter to accept only images
+
 const fileFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
   if (ext === ".jpg" || ext === ".jpeg" || ext === ".png") {
@@ -22,11 +22,11 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Upload middleware configuration
+
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB limit
+  limits: { fileSize: 5 * 1024 * 1024 }, 
 });
 
 export default upload;

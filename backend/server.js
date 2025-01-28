@@ -1,10 +1,4 @@
 import dotenv from 'dotenv';
-const result = dotenv.config();
-if (result.error) {
-  console.error('Failed to load .env file:', result.error);
-} else {
-  console.log('Environment variables loaded successfully.');
-}
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -24,14 +18,6 @@ const corsOptions = {
 console.log('Allowed Origin:', process.env.FRONTEND_URL);
 
 
-// const corsOptions = {
-//   origin: ['https://stock-image-nine.vercel.app'], // Replace this with your actual frontend URL
-//   credentials: true, // Allow cookies to be sent from frontend
-// };
-// console.log(corsOptions.origin, 'origin');
-
-
-// app.options('*', cors(corsOptions)); // Enable preflight for all routes
 
 
 app.use(cors(corsOptions)); 

@@ -13,9 +13,6 @@ import ForgotPasswordScreen from './screens/forgetPassword.jsx';
 import  Homepage from './screens/homeScreen.jsx'; 
 
 
-
-
-
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />}>
@@ -32,10 +29,6 @@ const router = createBrowserRouter(
     </Route>
   )
 );
-
-
-
-
 
 
 const root = createRoot(document.getElementById('root'));
