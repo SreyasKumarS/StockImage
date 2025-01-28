@@ -43,11 +43,10 @@ export class UserRepository {
 
   
   static async getImagesByUser(userId) {
-    const images = await Image.find({ user: userId }).sort("order");
-    return images
+    const images = await Image.find({ user: userId, saved: false }).sort("order");
+    return images;
   }
-
-
+  
   static async getImageById(id) {
     return await Image.findById(id); 
   }
@@ -97,48 +96,134 @@ static async updateRotation (id, angle){
   }
 
 
+  // static async zipFolderAndSave(sourceFolder, outputFile, userId) {
+  //   console.log("Reached zipFolderAndSave in repository");
+  
+  //   const batchId = new Date().toISOString(); // Generate a unique batch ID for the current batch
+  
+  //   return new Promise(async (resolve, reject) => {
+  //     try {
+  //       // Step 1: Create the ZIP file
+  //       const output = fs.createWriteStream(outputFile);
+  //       const archive = archiver('zip', { zlib: { level: 9 } });
+  
+  //       // Pipe the archive data to the file stream
+  //       archive.pipe(output);
+  
+  //       // Read files in the source folder
+  //       const files = fs.readdirSync(sourceFolder, { withFileTypes: true });
+  
+  //       // Add each file to the archive
+  //       files.forEach((file) => {
+  //         const filePath = path.join(sourceFolder, file.name);
+  //         if (file.isFile()) {
+  //           archive.file(filePath, { name: file.name });
+  //         }
+  //       });
+  
+  //       // Finalize the archive
+  //       archive.finalize();
+  
+  //       // Step 2: Wait for the archive to finish
+  //       output.on('close', async () => {
+  //         try {
+  //           // Step 3: Update the images for the current batch
+  //           await Image.updateMany(
+  //             { user: userId, saved: false }, // Identify unsaved images for the user
+  //             { $set: { saved: true, batchId: batchId } } // Update `saved` and assign `batchId`
+  //           );
+  
+  //           console.log("Images saved successfully with batchId:", batchId);
+  //           resolve(batchId); // Return the batch ID for future reference
+  //         } catch (dbError) {
+  //           console.error("Error updating images in database:", dbError);
+  //           reject(dbError);
+  //         }
+  //       });
+  
+  //       archive.on('error', (zipError) => {
+  //         console.error("Error creating ZIP file:", zipError);
+  //         reject(zipError);
+  //       });
+  //     } catch (error) {
+  //       console.error("Error in zipFolderAndSave:", error);
+  //       reject(error);
+  //     }
+  //   });
+  // }
+  
 
 
-  static async zipFolder(sourceFolder, outputFile) {
-    console.log('Reached zipFolder in repository');
-    return new Promise((resolve, reject) => {
-      const output = fs.createWriteStream(outputFile);
-      const archive = archiver('zip', { zlib: { level: 9 } });
-  
-      // Pipe the archive data to the file stream
-      archive.pipe(output);
-  
-      // Read files in the source folder as-is (without sorting)
-      const files = fs.readdirSync(sourceFolder, { withFileTypes: true });
-  
-      // Add each file to the archive in the exact filesystem order
-      files.forEach((file) => {
-        const filePath = path.join(sourceFolder, file.name);
-        if (file.isFile()) {
-          archive.file(filePath, { name: file.name });
-        }
-      });
-  
-      // Finalize the archive
-      archive.finalize();
-  
-      output.on('close', resolve);
-      archive.on('error', reject);
-    });
-  }
-  
 
 
-
-  
-  static async deleteFile(filePath){
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+  static async getUnsavedImages(userId) {
+    try {
+      return await Image.find({ user: userId, saved: false }).sort({ order: 1 });
+    } catch (error) {
+      console.error("Error fetching unsaved images:", error);
+      throw error;
     }
-  };
+  }
+
+  // Assign a batch ID to images and mark them as saved
+  static async assignBatchIdAndSave(images, userId) {
+    try {
+
+      const batchId = new Date().toISOString(); // Generate a unique batch ID
+
+      const imageIds = images.map((img) => img._id); // Extract image IDs to update
+
+      // Update images in bulk
+      await Image.updateMany(
+        { _id: { $in: imageIds } },
+        { $set: { saved: true, batchId: batchId } }
+      );
+
+      return batchId;
+    } catch (error) {
+      console.error("Error updating images with batch ID:", error);
+      throw error;
+    }
+  }
+
+  // Cleanup a file
+  static async deleteFile(filePath) {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log("Deleted file:", filePath);
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+    }
+  }
+
+  static async getSavedBatches() {
+    console.log("Reached batch images in repo");
+    return await Image.aggregate([
+      { $match: { saved: true } }, // Match only saved images
+      { $sort: { order: 1 } }, // Sort images by order within the batch
+      {
+        $group: {
+          _id: "$batchId", // Group by batchId
+          images: { $push: "$$ROOT" }, // Push the entire image document into the batch
+        },
+      },
+      { $sort: { _id: -1 } }, // Sort batches by batchId (latest batch first)
+    ]);
+  }
 
 
+  static async deleteBatch(batchId) {
+    try {
+      return await Image.deleteMany({ batchId });
+    } catch (error) {
+      console.error("Error in BatchRepository:", error);
+      throw error;
+    }
+  }
+ 
 
 
-
+  
 }

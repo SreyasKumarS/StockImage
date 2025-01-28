@@ -238,38 +238,78 @@ export class UserController {
 
 
 
+  // async downloadImages(req, res) {
+  //   try {
+  //     console.log("Reached downloadModifiedImages in controller");
+  //     const userId = req.body.userId;
+  //     // Fetch metadata from MongoDB and sort by `order`
+  //     const images = await Image.find().sort({ order: 1 }); // Ensure the correct order
+  
+  //     // Temporary folder for processed images
+  //     const tempFolder = path.join(process.cwd(), "temp");
+  //     if (!fs.existsSync(tempFolder)) fs.mkdirSync(tempFolder);
+  
+  //     const processedImages = [];
+  
+  //     for (let image of images) {
+  //       const originalImagePath = path.join(process.cwd(), "public", "uploads", image.url.split("/").pop());
+  //       const modifiedImagePath = path.join(tempFolder, path.basename(image.url)); // Use original image name
+  
+  //       if (fs.existsSync(originalImagePath)) {
+  //         // Process the image with Sharp
+  //         await sharp(originalImagePath)
+  //           .rotate(image.rotation || 0) // Apply rotation
+  //           .toFile(modifiedImagePath); // Save the processed image
+  
+  //         processedImages.push({ path: modifiedImagePath, order: image.order }); // Include order in the list
+  //       }
+  //     }
+  
+  //     // Sort processed images by `order` before zipping
+  //     processedImages.sort((a, b) => a.order - b.order);
+  
+  //     // Create a ZIP file with the processed images in the correct order
+  //     const zipFilePath = path.join(process.cwd(), "public", "modified-images.zip");
+  //     const imagePaths = processedImages.map((img) => img.path); // Extract paths in sorted order
+  //     await UserService.createZip(imagePaths, zipFilePath);
+  
+  //     // Send the ZIP file to the client
+  //     if (fs.existsSync(zipFilePath)) {
+  //       res.download(zipFilePath, "modified-images.zip", (err) => {
+  //         if (err) {
+  //           console.error("Error during download:", err);
+  //           res.status(500).send("Error during download.");
+  //         } else {
+  //           // Cleanup temporary files
+  //           fs.rmdirSync(tempFolder, { recursive: true });
+  //           UserService.cleanupZip(zipFilePath);
+  //         }
+  //       });
+  //     } else {
+  //       res.status(404).send("File not found.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error in downloadModifiedImages controller:", error);
+  //     res.status(500).send("An error occurred while processing the request.");
+  //   }
+  // }
+  
+
 
 
   async downloadImages(req, res) {
     try {
-      console.log("Reached downloadModifiedImages in controller");
+
   
-      // Fetch metadata from MongoDB and sort by `order`
-      const images = await Image.find().sort({ order: 1 }); // Sort by 'order' field
+      const userId = req.body.userId; // Retrieve userId from the request body
+
   
-      // Temporary folder for processed images
-      const tempFolder = path.join(process.cwd(), "temp");
-      if (!fs.existsSync(tempFolder)) fs.mkdirSync(tempFolder);
-  
-      const processedImages = [];
-  
-      for (let image of images) {
-        const originalImagePath = path.join(process.cwd(), "public", "uploads", image.url.split("/").pop());
-        const modifiedImagePath = path.join(tempFolder, `${image.title}.jpeg`); // Rename based on title
-  
-        if (fs.existsSync(originalImagePath)) {
-          // Process the image with Sharp
-          await sharp(originalImagePath)
-            .rotate(image.rotation || 0) // Apply rotation
-            .toFile(modifiedImagePath); // Save with the new name
-  
-          processedImages.push(modifiedImagePath); // Add to the list of processed images
-        }
+      if (!userId) {
+        return res.status(400).send("User ID is required.");
       }
   
-      // Create a ZIP file with the processed images in the correct order
-      const zipFilePath = path.join(process.cwd(), "public", "modified-images.zip");
-      await UserService.createZip(processedImages, zipFilePath);
+      // Call the service to process images and create a ZIP file
+      const zipFilePath = await UserService.processImagesAndCreateZip(userId);
   
       // Send the ZIP file to the client
       if (fs.existsSync(zipFilePath)) {
@@ -278,9 +318,7 @@ export class UserController {
             console.error("Error during download:", err);
             res.status(500).send("Error during download.");
           } else {
-            // Cleanup temporary files
-            fs.rmdirSync(tempFolder, { recursive: true });
-            UserService.cleanupZip(zipFilePath);
+            console.log("File downloaded successfully.");
           }
         });
       } else {
@@ -291,9 +329,43 @@ export class UserController {
       res.status(500).send("An error occurred while processing the request.");
     }
   }
+  
+
+
+  async  getSavedBatches (req, res) {
+    try {
+      console.log("Reached batch images in controller");
+      const batches = await UserService.fetchSavedBatches();
+      res.status(200).json(batches);
+    } catch (error) {
+      console.error("Error fetching saved batches:", error);
+      res.status(500).send("An error occurred while fetching saved batches.");
+    }
+  };
 
 
 
+  async deleteBatch(req, res) {
+    try {
+      const { batchId } = req.params; // Get the batchId from the request params
+      if (!batchId) {
+        return res.status(400).json({ error: "Batch ID is required" });
+      }
+
+      const result = await UserService.deleteBatch(batchId);
+
+      if (result.deletedCount > 0) {
+        return res.status(200).json({ message: "Batch deleted successfully!" });
+      } else {
+        return res
+          .status(404)
+          .json({ error: "No batch found with the given Batch ID." });
+      }
+    } catch (error) {
+      console.error("Error deleting batch:", error);
+      res.status(500).json({ error: "Internal server error." });
+    }
+  }
 
 
 }

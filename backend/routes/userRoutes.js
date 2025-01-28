@@ -26,5 +26,7 @@ router.put("/replaceImage/:id", upload.single("image"), userController.replaceIm
 router.put("/rotate/:id", userController.rotateImage);
 router.put("/reorder", userController.reorderImages);
 router.post('/download-images', userController.downloadImages);
+router.get("/batches", userController.getSavedBatches);
+router.delete('/deletebatches/:batchId', userController.deleteBatch);
 
 export default router;

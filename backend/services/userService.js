@@ -380,19 +380,29 @@ static async deleteImage(id) {
 
 
 
-
-  // static async createZip() {
-  //   try {
-  //     console.log('Reached createZip in service');
-  //     const imagesFolder = path.join(process.cwd(), 'public', 'uploads');
-  //     const outputPath = path.join(process.cwd(), 'public', 'modified-images.zip');
+  // static async createZip(imagePaths, outputFile) {
+  //   console.log("Reached createZip in service");
+  //   return new Promise((resolve, reject) => {
+  //     const output = fs.createWriteStream(outputFile);
+  //     const archive = archiver("zip", { zlib: { level: 9 } });
   
-  //     await UserRepository.zipFolder(imagesFolder, outputPath);
-  //   } catch (error) {
-  //     console.error('Error in createZip service:', error);
-  //     throw new Error('Failed to create zip file.');
-  //   }
+  //     // Pipe the archive data to the file stream
+  //     archive.pipe(output);
+  
+  //     // Add processed images to the archive in the correct order
+  //     imagePaths.forEach((imagePath) => {
+  //       archive.file(imagePath, { name: path.basename(imagePath) }); // Use the renamed file
+  //     });
+  
+  //     // Finalize the archive
+  //     archive.finalize();
+  
+  //     output.on("close", resolve);
+  //     archive.on("error", reject);
+  //   });
   // }
+
+
   
   // static async cleanupZip(filePath) {
   //   try {
@@ -401,54 +411,95 @@ static async deleteImage(id) {
   //     console.error('Error cleaning up zip file:', error);
   //   }
   // }
-  
 
 
 
+
+  static async processImagesAndCreateZip(userId) {
+    try {
+      
+
+      // Step 1: Fetch unsaved images from the repository
+      const unsavedImages = await UserRepository.getUnsavedImages(userId);
+
+      if (unsavedImages.length === 0) {
+        throw new Error("No unsaved images found for the user.");
+      }
+
+      // Step 2: Process images (apply rotation) and store them in a temporary folder
+      const tempFolder = path.join(process.cwd(), "temp");
+      if (!fs.existsSync(tempFolder)) fs.mkdirSync(tempFolder);
+
+      const processedImages = [];
+      for (let image of unsavedImages) {
+        const originalImagePath = path.join(process.cwd(), "public", "uploads", image.url.split("/").pop());
+        const modifiedImagePath = path.join(tempFolder, path.basename(image.url));
+
+        if (fs.existsSync(originalImagePath)) {
+          await sharp(originalImagePath)
+            .rotate(image.rotation || 0)
+            .toFile(modifiedImagePath);
+
+          processedImages.push({ path: modifiedImagePath, order: image.order });
+        }
+      }
+
+      // Step 3: Sort processed images by `order`
+      processedImages.sort((a, b) => a.order - b.order);
+
+      // Step 4: Create a ZIP file
+      const zipFilePath = path.join(process.cwd(), "public", "modified-images.zip");
+      const imagePaths = processedImages.map((img) => img.path);
+
+      await UserService.createZip(imagePaths, zipFilePath);
+
+      // Step 5: Assign the same `batchId` and mark images as `saved`
+      const batchId = await UserRepository.assignBatchIdAndSave(unsavedImages, userId);
+
+      console.log("Batch ID assigned:", batchId);
+
+      return zipFilePath;
+    } catch (error) {
+      console.error("Error in processImagesAndCreateZip:", error);
+      throw error;
+    }
+  }
 
   static async createZip(imagePaths, outputFile) {
-    console.log("Reached createZip in service");
     return new Promise((resolve, reject) => {
       const output = fs.createWriteStream(outputFile);
       const archive = archiver("zip", { zlib: { level: 9 } });
-  
-      // Pipe the archive data to the file stream
+
       archive.pipe(output);
-  
-      // Add processed images to the archive in the correct order
       imagePaths.forEach((imagePath) => {
-        archive.file(imagePath, { name: path.basename(imagePath) }); // Use the renamed file
+        archive.file(imagePath, { name: path.basename(imagePath) });
       });
-  
-      // Finalize the archive
+
       archive.finalize();
-  
       output.on("close", resolve);
       archive.on("error", reject);
     });
   }
 
 
-  
-  static async cleanupZip(filePath) {
+
+
+
+  static async fetchSavedBatches (){
+    console.log("Reached batch images in srvcc");
+    return await UserRepository.getSavedBatches();
+  };
+
+
+  static async deleteBatch(batchId) {
     try {
-      UserRepository.deleteFile(filePath);
+      // Delegate to the repository layer
+      return await UserRepository.deleteBatch(batchId);
     } catch (error) {
-      console.error('Error cleaning up zip file:', error);
+      console.error("Error in BatchService:", error);
+      throw error;
     }
   }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -6,8 +6,10 @@ const imageSchema = mongoose.Schema(
     url: { type: String, required: true },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     order: { type: Number, required: true },
-    rotation: { type: Number, default: 0 },  // Add this field for tracking rotation
-    modifiedAt: { type: Date, default: Date.now }, // Track the last modification date
+    rotation: { type: Number, default: 0 }, 
+    saved: { type: Boolean, default: false }, 
+    batchId: { type: String },
+    modifiedAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
